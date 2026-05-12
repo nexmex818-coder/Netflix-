@@ -3,96 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HDO Box Web | النسخة المستقرة</title>
+    <title>See Drama - نبض الدراما</title>
     <style>
-        :root { --main: #e50914; --bg: #050505; --card: #111; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding-bottom: 50px; }
-        header { background: #000; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main); position: sticky; top: 0; z-index: 1000; }
-        .logo { color: var(--main); font-size: 1.5rem; font-weight: 900; text-decoration: none; }
-        #player-wrap { display: none; background: #000; padding: 20px 0; border-bottom: 1px solid #222; }
-        .video-box { width: 95%; max-width: 900px; margin: 0 auto; aspect-ratio: 16/9; background: #000 url('https://i.gifer.com/ZKZg.gif') center no-repeat; background-size: 40px; border: 1px solid #333; }
-        iframe { width: 100%; height: 100%; border: none; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; padding: 20px 5%; }
-        .card { background: var(--card); border-radius: 8px; overflow: hidden; cursor: pointer; transition: 0.3s; border: 1px solid #222; text-align: center; }
-        .card:hover { transform: translateY(-5px); border-color: var(--main); }
-        .card img { width: 100%; height: 190px; object-fit: cover; }
-        .card p { font-size: 0.8rem; padding: 10px; margin: 0; height: 40px; overflow: hidden; }
-        .btn { background: var(--main); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #gate { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; text-align: center; }
+        body { background-color: #0b0b0b; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .card { background: #1a1a1a; border-radius: 10px; overflow: hidden; transition: 0.3s; border: 1px solid #333; }
+        .card:hover { transform: scale(1.05); border-color: #e50914; }
+        .card img { width: 100%; height: 220px; object-fit: cover; }
+        .card h3 { font-size: 14px; padding: 10px; margin: 0; text-align: center; height: 40px; overflow: hidden; }
+        .badge { background: #e50914; color: white; padding: 2px 8px; font-size: 10px; border-radius: 3px; margin: 5px; display: inline-block; }
     </style>
 </head>
 <body>
-
-<header>
-    <a href="#" class="logo">HDO BOX</a>
-    <button class="btn" onclick="location.reload()">تحديث الأفلام</button>
-</header>
-
-<div id="player-wrap">
-    <div class="video-box" id="vBox"></div>
-    <div style="text-align: center; margin-top: 15px;">
-        <button class="btn" style="background:#444" onclick="closeP()">إغلاق المشغل ✕</button>
+    <h2 style="color: #e50914;">🎬 آخر الإضافات الكورية</h2>
+    <div id="movie-list" class="grid">
+        <!-- البيانات ستظهر هنا -->
     </div>
-</div>
 
-<div class="grid" id="mainGrid"></div>
-
-<div id="gate">
-    <h2 id="gateTitle">جاري تحضير الفيلم...</h2>
-    <p>السيرفر الآمن جاهز الآن</p>
-    <button class="btn" id="playBtn" style="display:none; padding: 15px 40px;" onclick="showVideo()">ابدأ المشاهدة الآن</button>
-</div>
-
-<script>
-    const API_KEY = '7d76e547981b909c8d6d300ade017ab3';
-    let currentId = '';
-
-    // جلب البيانات من TMDB
-    async function init() {
-        try {
-            const r = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${API_KEY}&language=ar`);
-            const d = await r.json();
-            const grid = document.getElementById('mainGrid');
-            grid.innerHTML = d.results.map(m => `
-                <div class="card" onclick="openGate(${m.id}, '${m.title || m.name}')">
-                    <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'">
-                    <p>${m.title || m.name}</p>
-                </div>
-            `).join('');
-        } catch(e) { alert("تأكد من اتصال الإنترنت"); }
-    }
-
-    function openGate(id, title) {
-        currentId = id;
-        document.getElementById('gateTitle').innerText = title;
-        document.getElementById('gate').style.display = 'flex';
-        
-        // هنا تضع رابط ادستيرا لاحقاً لفتح الإعلان
-        // window.open('رابط_ادستيرا', '_blank');
-
-        setTimeout(() => {
-            document.getElementById('playBtn').style.display = 'block';
-        }, 2000);
-    }
-
-    function showVideo() {
-        document.getElementById('gate').style.display = 'none';
-        document.getElementById('player-wrap').style.display = 'block';
-        
-        // السيرفر الجوكر (SuperEmbed) - الأضمن حالياً
-        const url = `https://multiembed.mov/directstream.php?video_id=${currentId}&tmdb=1`;
-        
-        document.getElementById('vBox').innerHTML = `<iframe src="${url}" allowfullscreen sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"></iframe>`;
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    function closeP() {
-        document.getElementById('player-wrap').style.display = 'none';
-        document.getElementById('vBox').innerHTML = '';
-        document.getElementById('playBtn').style.display = 'none';
-    }
-
-    init();
-</script>
+    <script>
+        fetch('movies.json')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('movie-list');
+                data.forEach(movie => {
+                    container.innerHTML += `
+                        <div class="card" onclick="window.location.href='${movie.url}'">
+                            <img src="${movie.poster}" alt="${movie.title}">
+                            <span class="badge">${movie.quality}</span>
+                            <h3>${movie.title}</h3>
+                        </div>
+                    `;
+                });
+            });
+    </script>
 </body>
 </html>
