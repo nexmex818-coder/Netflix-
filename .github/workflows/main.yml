@@ -1,15 +1,15 @@
 name: Auto Scrape Movies
 on:
   schedule:
-    - cron: '0 */6 * * *' # يشتغل تلقائياً كل 6 ساعات
-  workflow_dispatch:      # عشان تقدر تشغله يدوياً الآن
+    - cron: '0 */6 * * *' 
+  workflow_dispatch:      
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # تم التحديث من v3 إلى v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
