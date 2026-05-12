@@ -1,12 +1,11 @@
 <?php
-$target_url = 'https://ar.drama-queen.live/category/%d9%85%d8%b3%d9%84%d8%b3%d9%84%d8%a7%d8%aa-%d9%83%d9%88%d8%b1%d9%8ي%d8%a9/';
+// سنستخدم موقعاً بديلاً أسهل في القشط حالياً للتجربة
+$target_url = 'https://ww.asia2tv.top/category/korean-drama/';
 
 $options = [
     "http" => [
         "method" => "GET",
-        "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36\r\n" .
-                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\r\n" .
-                    "Accept-Language: en-US,en;q=0.5\r\n"
+        "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\r\n"
     ],
     "ssl" => ["verify_peer" => false, "verify_peer_name" => false]
 ];
@@ -15,25 +14,37 @@ $context = stream_context_create($options);
 $content = file_get_contents($target_url, false, $context);
 
 if (!$content) {
-    echo "❌ فشل جلب المحتوى من الموقع.";
-    exit;
+    die("❌ فشل الاتصال بالموقع البديل");
 }
 
-// Regex شامل جداً لجلب الرابط، الصورة، والعنوان
-preg_match_all('/<a href="([^"]+)"[^>]*>.*?<img[^>]*src="([^"]+)"[^>]*alt="([^"]+)"/is', $content, $matches);
+// Regex جديد يتناسب مع بنية المواقع المشهورة
+preg_match_all('/<a href="([^"]+)"[^>]*title="([^"]+)"[^>]*>.*?<img[^>]*src="([^"]+)"/is', $content, $matches);
 
 $movies = [];
-for ($i = 0; $i < count($matches[0]); $i++) {
-    // تصفية النتائج لضمان أنها مسلسلات وليست روابط جانبية
-    if (strpos($matches[1][$i], '/drama/') !== false || strpos($matches[1][$i], '/series/') !== false) {
+// سنأخذ أول 12 مسلسل فقط للتجربة
+for ($i = 0; $i < min(12, count($matches[0])); $i++) {
+    $movies[] = [
+        'title'   => trim($matches[2][$i]),
+        'poster'  => $matches[3][$i],
+        'url'     => $matches[1][$i],
+        'quality' => "WEB-DL"
+    ];
+}
+
+// إذا فشل الـ Regex الأول، سنجرب واحداً أبسط
+if (empty($movies)) {
+    preg_match_all('/<img[^>]*src="([^"]+)"[^>]*alt="([^"]+)"/is', $content, $img_matches);
+    preg_match_all('/<a[^>]*href="([^"]+)"[^>]*class="post-link"/is', $content, $link_matches);
+    
+    for ($i = 0; $i < min(10, count($img_matches[1])); $i++) {
         $movies[] = [
-            'title'   => trim($matches[3][$i]),
-            'poster'  => $matches[2][$i],
-            'url'     => $matches[1][$i],
-            'quality' => "FHD"
+            'title'   => $img_matches[2][$i] ?? "مسلسل كوري",
+            'poster'  => $img_matches[1][$i],
+            'url'     => $link_matches[1][$i] ?? "#",
+            'quality' => "HD"
         ];
     }
 }
 
 file_put_contents('movies.json', json_encode($movies, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-echo "✅ تم العثور على: " . count($movies) . " مسلسل.";
+echo "✅ تم العثور على: " . count($movies) . " عمل درامي.";
